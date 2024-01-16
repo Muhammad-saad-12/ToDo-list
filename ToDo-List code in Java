@@ -1,0 +1,137 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.LinkedList;
+
+public class TodoListApp extends JFrame {
+
+    private LinkedList<String> todoListData;
+    private JList<String> todoList;
+    private JTextField taskInput;
+
+    public TodoListApp() {
+        // Set up the main frame
+        setTitle("Extended Todo List Application");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setContentPane(createMainPanel());
+
+        // Make the frame visible
+        setVisible(true);
+    }
+
+    private JPanel createMainPanel() {
+        // Create a panel for the main content
+        JPanel mainPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+            }
+        };
+        mainPanel.setLayout(new BorderLayout());
+
+        // Initialize the LinkedList for tasks
+        todoListData = new LinkedList<>();
+        todoList = new JList<>(new DefaultListModel<>());
+        todoList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        // Create a JScrollPane for the todoList
+        JScrollPane scrollPane = new JScrollPane(todoList);
+
+        // Create colorful buttons
+        JButton addButton = createButton("Add Task", Color.GREEN, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addTask();
+            }
+        });
+
+        JButton removeButton = createButton("Remove Selected", Color.RED, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeSelectedTasks();
+            }
+        });
+
+        JButton modifyButton = createButton("Modify Selected", Color.BLUE, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                modifySelectedTask();
+            }
+        });
+
+        // Create a JTextField for entering tasks
+        taskInput = new JTextField(20);
+
+        // Create a JPanel for the input components
+        JPanel inputPanel = new JPanel();
+        inputPanel.add(new JLabel("Task:"));
+        inputPanel.add(taskInput);
+        inputPanel.add(addButton);
+        inputPanel.add(removeButton);
+        inputPanel.add(modifyButton);
+
+        // Add components to the main panel
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        mainPanel.add(inputPanel, BorderLayout.SOUTH);
+
+        return mainPanel;
+    }
+
+    private JButton createButton(String label, Color color, ActionListener listener) {
+        JButton button = new JButton(label);
+        button.setBackground(color);
+        button.addActionListener(listener);
+        return button;
+    }
+
+    private void addTask() {
+        String task = taskInput.getText().trim();
+        if (!task.isEmpty()) {
+            todoListData.add(task);
+            updateTodoList();
+            taskInput.setText("");
+        }
+    }
+
+    private void removeSelectedTasks() {
+        int[] selectedIndices = todoList.getSelectedIndices();
+        for (int i = selectedIndices.length - 1; i >= 0; i--) {
+            todoListData.remove(selectedIndices[i]);
+        }
+        updateTodoList();
+    }
+
+    private void modifySelectedTask() {
+        int selectedIndex = todoList.getSelectedIndex();
+        if (selectedIndex != -1) {
+            String modifiedTask = JOptionPane.showInputDialog(this, "Modify task:", todoListData.get(selectedIndex));
+            if (modifiedTask != null) {
+                todoListData.set(selectedIndex, modifiedTask);
+                updateTodoList();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a task to modify.");
+        }
+    }
+
+    private void updateTodoList() {
+        DefaultListModel<String> model = (DefaultListModel<String>) todoList.getModel();
+        model.clear();
+        for (String task : todoListData) {
+            model.addElement(task);
+        }
+    }
+
+    public static void main(String[] args) {
+        // Use the event dispatch thread to build the GUI
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new TodoListApp();
+            }
+        });
+    }
+}
